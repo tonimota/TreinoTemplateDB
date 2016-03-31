@@ -1,14 +1,13 @@
 <?php
+session_start();
 
 include('../config/db.php');
 
 if (isset($_POST['btn_send'])) {
-	$db_conn = mysqli_connect (	HOST_DB,
-								USUARIO_DB,
-								SENHA_DB,
-								NOME_DB);
-								
-	$stmt = mysqli_prepare($db_conn,' 	SELECT 
+	
+	$objDB = new PDO(	'mysql:host='.HOST_DB.';dbname='.NOME_DB,USUARIO_DB,SENHA_DB);
+	
+	$objStmt = $objDB->prepare(		'SELECT 
 											cod_usuario
 										FROM
 											pi_user
@@ -16,27 +15,30 @@ if (isset($_POST['btn_send'])) {
 											login = ?
 										AND
 											senha = ?');
-	mysqli_stmt_bind_param($stmt,'ss',	$_POST['name']),
-										$_POST['password']);
-	mysqli_stmt_execute($stmt);
+	$objStmt->bindParam(1,$_POST['name']);
+	$objStmt->bindParam(2,$_POST['password']);
+	$objStmt->execute();
 	
-	mysqli_
-	
-if (isset($_POST['btn_send'])) {
-	if (isset($logins[$_POST['name']])) {
-		if ($logins[$_POST['name']] == $_POST['password']) {
-			include('bienvienido.php');			
-		} else {
-			$msg = 'Usúario ou senha inválido';
-			include('index.php');
+	if($objStmt->rowCount() > 0) {
+		
+		$_SESSION['name'] = $_POST['name']; 
+		
+		$objStmt = $objDB->prepare(' SELECT
+										*
+										FROM
+											pi_user');
+		$objStmt->execute();
+		
+		while ($reg = $objStmt->fetch(PDO::FETCH_ASSOC)) {
+			$usuarios[$reg['cod_usuario']] = $reg;
 		}
-	} else {
-		$msg = 'Usúario ou senha inválido';
-		include('index.php');
-	}
+		include('bienvienido.php');
+} else {
+	$msg = 'Usúario ou senha inválido';
+	include('index.php');
+}
 }
 else {
 	include('index.php');
-}
 }
 ?>
